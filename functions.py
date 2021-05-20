@@ -23,7 +23,7 @@ def process_single_file(input_file):
     return output_hdul
 
 
-def process_single_object(control_file, input_dir, output_dir):
+def process_all_objects(control_file, input_dir, output_dir):
     """
     Function to loop through the files in the input directory and process/rename/save
     them in the format expected by the IRAF code.
