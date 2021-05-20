@@ -16,7 +16,7 @@ def process_single_file(input_file):
     overscan area of the CCD.
 
     :param input_file:    (str) filepath of the image to process
-    :returns output_hdul: (astropy.io.fits.HDUList) processed version of the fits file
+    :return: output_hdul: (astropy.io.fits.HDUList) processed version of the fits file
     """
     # TODO: Add code below...
 
