@@ -1,0 +1,174 @@
+stsdas
+imdel ?oo*.fits
+imdel allflat
+
+#########
+#########
+#########
+#this bit done outside by python only for testing here
+#########
+#########
+#put sci1, flat1, flat2, sci2
+imdel sci1,sci2,flat1,flat2
+imarith mALDh190132 - 9160 sci1.fits
+imarith mALDh190133 - 9169 flat1.fits
+imarith mALDh190134 - 9166 flat2.fits
+imarith mALDh190137 - 9141 sci2.fits
+#########
+#########
+#########
+#########
+#########
+
+###these are the flats
+imcopy flat1 aoo1
+imcopy flat2 boo1
+
+imcomb aoo1,boo1 coo1 reject=crrej grow=1
+median coo1 coo5 101 3
+imarith coo1 / coo5 coo1
+median coo1 coo2 1 101
+imarith coo2 * pixflat allflat
+
+#### process first sci spec
+imcopy sci1 foo0
+imarith foo0 / allflat foo2
+
+####cosmic ray mask by code
+!rm moo*
+median foo2 moo2 31 1
+imarith foo2 - moo2 moo3
+!rm runfile1
+print('.comp imcalc1', >'runfile1')
+print('imcalc1,"moo3.fits","moo4.fits"', >>'runfile1')
+print('exit', >>'runfile1')
+!idl < runfile1
+gauss moo4 moo5 1.5
+!rm mask_0008_im1final.fits
+!rm runfile2
+print('.comp imcalc2', >'runfile2')
+print('imcalc2,"moo3.fits","moo5.fits","mask_0008_im1final.fits"', >>'runfile2')
+print('exit', >>'runfile2')
+!idl < runfile2
+
+####use mask to remove CRs from the image
+!rm runfile3
+print('.comp imcalc3', >'runfile3')
+print('imcalc3,"foo2.fits","mask_0008_im1final.fits","foo2m.fits"', >>'runfile3')
+print('exit', >>'runfile3')
+!idl < runfile3
+#imcalc foo2,mask_0008_im1final foo2m 'if im2 .eq. 0 then im1 else 999999'
+median foo2m foo2a 3 1 zhirej=888888
+median foo2m foo2b 5 1 zhirej=888888
+median foo2m foo2c 7 1 zhirej=888888
+median foo2m foo2d 11 1 zhirej=888888
+!rm runfile4
+print('.comp imcalc4', >'runfile4')
+print('imcalc4,"foo2m.fits","foo2a.fits","foo2a1.fits"', >>'runfile4')
+print('imcalc4,"foo2a1.fits","foo2b.fits","foo2b1.fits"', >>'runfile4')
+print('imcalc4,"foo2b1.fits","foo2c.fits","foo2c1.fits"', >>'runfile4')
+print('imcalc4,"foo2c1.fits","foo2d.fits","foo2d1.fits"', >>'runfile4')
+print('exit', >>'runfile4')
+!idl < runfile4
+
+####tracemask built using IDL code
+!rm goo*
+!rm tracemaskone.fits
+!rm trace1.fits
+median foo2d1 goo1 251 1
+imarith foo2d1 - goo1 goo2
+median goo2 goo3 1 21
+boxcar goo3 goo4 3 301
+boxcar goo3 trace1.fits 1 501
+!rm runfilemask
+print('.comp maskxcorr', >'runfilemask')
+print("maskxcorr,'goo4.fits','tracemaskone.fits'", >>'runfilemask')
+print('exit', >>'runfilemask')
+!idl runfilemask
+
+!rm runfile3
+print('.comp imcalc3', >'runfile3')
+print("imcalc3,'foo2d1.fits','tracemaskone.fits','foo2e.fits'", >>'runfile3')
+print('exit', >>'runfile3')
+!idl < runfile3
+median foo2e foo3 101 1 zlorej=-99999 zhirej=888888
+imarith foo2d1 - foo3 foo4
+
+####process second sci spec
+imcopy sci2 hoo0
+imarith hoo0 / allflat hoo2
+
+####cosmic ray mask by code
+!rm moo*
+median hoo2 moo2 31 1
+imarith hoo2 - moo2 moo3
+!rm runfile1
+print('.comp imcalc1', >'runfile1')
+print('imcalc1,"moo3.fits","moo4.fits"', >>'runfile1')
+print('exit', >>'runfile1')
+!idl < runfile1
+gauss moo4 moo5 1.5
+!rm mask_0008_im1final.fits
+!rm runfile2
+print('.comp imcalc2', >'runfile2')
+print('imcalc2,"moo3.fits","moo5.fits","mask_0008_im1final.fits"', >>'runfile2')
+print('exit', >>'runfile2')
+!idl < runfile2
+
+#####use mask to remove CRs from the image
+!rm runfile3
+print('.comp imcalc3', >'runfile3')
+print('imcalc3,"hoo2.fits","mask_0008_im1final.fits","hoo2m.fits"', >>'runfile3')
+print('exit', >>'runfile3')
+!idl < runfile3
+#imcalc hoo2,mask_0008_im1final hoo2m 'if im2 .eq. 0 then im1 else 999999'
+median hoo2m hoo2a 3 1 zhirej=888888
+median hoo2m hoo2b 5 1 zhirej=888888
+median hoo2m hoo2c 7 1 zhirej=888888
+median hoo2m hoo2d 11 1 zhirej=888888
+!rm runfile4
+print('.comp imcalc4', >'runfile4')
+print('imcalc4,"hoo2m.fits","hoo2a.fits","hoo2a1.fits"', >>'runfile4')
+print('imcalc4,"hoo2a1.fits","hoo2b.fits","hoo2b1.fits"', >>'runfile4')
+print('imcalc4,"hoo2b1.fits","hoo2c.fits","hoo2c1.fits"', >>'runfile4')
+print('imcalc4,"hoo2c1.fits","hoo2d.fits","hoo2d1.fits"', >>'runfile4')
+print('exit', >>'runfile4')
+!idl < runfile4
+
+#tracemask built using IDL code
+!rm goo*
+!rm tracemasktwo.fits
+!rm trace2.fits
+median hoo2d1 goo1 251 1
+imarith hoo2d1 - goo1 goo2
+median goo2 goo3 1 21
+boxcar goo3 goo4 3 301
+boxcar goo3 trace2.fits 1 501
+!rm runfilemask
+print('.comp maskxcorr', >'runfilemask')
+print("maskxcorr,'goo4.fits','tracemasktwo.fits'", >>'runfilemask')
+print('exit', >>'runfilemask')
+!idl runfilemask
+
+!rm runfileim
+print('.comp maskxcorr', >'runfileim')
+print("imxcorr", >>'runfileim')
+print('exit', >>'runfileim')
+!idl runfileim
+
+!rm runfile3
+print('.comp imcalc3', >'runfile3')
+print('imcalc3,"hoo2d1.fits","tracemasktwo.fits","hoo2e.fits"', >>'runfile3')
+print('exit', >>'runfile3')
+!idl < runfile3
+median hoo2e hoo3 101 1 zlorej=-99999 zhirej=888888
+imarith hoo2d1 - hoo3 hoo4
+cl < tempcl1
+
+!rm *subfinal*
+imcomb foo4,hoo6 skysubfinal lthresh=-9999
+
+imdel diff*
+imarith foo2d1 - hoo2d1 diff1
+cl < tempcl2
+imarith diff1 - diff2 diffsubfinal
