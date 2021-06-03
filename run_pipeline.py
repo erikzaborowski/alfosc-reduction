@@ -27,10 +27,14 @@ def process_single_file(input_file):
     """
     hdul = fits.open(input_file)
     data = hdul[1].data
+    hdr = hdul[1].header
     vals = data[:,2120:2140]
     avg_pix = np.mean(vals)
     subtracted_data = data - avg_pix
-    hdu_subtracted = fits.PrimaryHDU(subtracted_data)
+    #hdu_primary = fits.PrimaryHDU()
+    #hdu_subtracted = fits.ImageHDU(subtracted_data, header=hdr)
+    #output_hdul = fits.HDUList([hdu_primary, hdu_subtracted])
+    hdu_subtracted = fits.PrimaryHDU(subtracted_data, header=hdr)
     output_hdul = fits.HDUList([hdu_subtracted])
     return output_hdul
 
@@ -58,7 +62,7 @@ def process_all_objects(filepath_ctrlfile, input_dir, output_dir):
     print(df_ctrlfile)
     for i in np.arange(len(df_ctrlfile)):
         # Load sci1, sci2, flat1, flat2 from control file
-        object_name = input_dir, df_ctrlfile.loc[i, 'object']
+        object_name = df_ctrlfile.loc[i, 'object']
         filepath_sci1 = os.path.join(input_dir, df_ctrlfile.loc[i, 'sci1'])
         filepath_sci2 = os.path.join(input_dir, df_ctrlfile.loc[i, 'sci2'])
         filepath_flat1 = os.path.join(input_dir, df_ctrlfile.loc[i, 'flat1'])
@@ -72,20 +76,20 @@ def process_all_objects(filepath_ctrlfile, input_dir, output_dir):
 
         # Save outputs in renamed files in IRAF directory "testnest"
         parentdir = os.path.dirname(os.path.abspath(__file__))
-        sci1_processed.writeto(os.path.join(parentdir, 'testnest', 'sci1.fits'), overwrite=True)
-        sci2_processed.writeto(os.path.join(parentdir, 'testnest', 'sci2.fits'), overwrite=True)
-        flat1_processed.writeto(os.path.join(parentdir, 'testnest', 'flat1.fits'), overwrite=True)
-        flat2_processed.writeto(os.path.join(parentdir, 'testnest', 'flat2.fits'), overwrite=True)
+        sci1_processed.writeto(os.path.join(parentdir, 'sci1.fits'), overwrite=True)
+        sci2_processed.writeto(os.path.join(parentdir, 'sci2.fits'), overwrite=True)
+        flat1_processed.writeto(os.path.join(parentdir, 'flat1.fits'), overwrite=True)
+        flat2_processed.writeto(os.path.join(parentdir, 'flat2.fits'), overwrite=True)
 
         # Call IRAF processing
-        iraf_path = os.path.join(parentdir, 'testnest', 'irafskysub')
+        iraf_path = os.path.join(parentdir, 'irafskysub')
         cmd = f'cl < {iraf_path}'
         print(cmd)
         os.system(cmd)
 
         # Rename outputs and move to output directory
-        os.rename(os.path.join(parentdir, 'testnest', 'diffsubfinal.fits'), os.path.join(output_dir, object_name + '_diffsubfinal.fits'))
-        os.rename(os.path.join(parentdir, 'testnest', 'skysubfinal.fits'), os.path.join(output_dir, object_name + '_skysubfinal.fits'))
+        os.rename(os.path.join(parentdir, 'diffsubfinal.fits'), os.path.join(output_dir, object_name + '_diffsubfinal.fits'))
+        os.rename(os.path.join(parentdir, 'skysubfinal.fits'), os.path.join(output_dir, object_name + '_skysubfinal.fits'))
 
 if __name__ == '__main__':
     description = 'Pipeline to run a single night of ALFOSC data and produce 2-D sky-subtracted images'

@@ -1,6 +1,6 @@
 stsdas
-imdel ?oo*.fits
-imdel allflat
+!rm ?oo*.fits
+!rm allflat
 
 #########
 #########
@@ -9,11 +9,11 @@ imdel allflat
 #########
 #########
 #put sci1, flat1, flat2, sci2
-imdel sci1,sci2,flat1,flat2
-imarith mALDh190132 - 9160 sci1.fits
-imarith mALDh190133 - 9169 flat1.fits
-imarith mALDh190134 - 9166 flat2.fits
-imarith mALDh190137 - 9141 sci2.fits
+#imdel sci1,sci2,flat1,flat2
+#imarith mALDh190132 - 9160 sci1.fits
+#imarith mALDh190133 - 9169 flat1.fits
+#imarith mALDh190134 - 9166 flat2.fits
+#imarith mALDh190137 - 9141 sci2.fits
 #########
 #########
 #########
@@ -172,3 +172,5 @@ imdel diff*
 imarith foo2d1 - hoo2d1 diff1
 cl < tempcl2
 imarith diff1 - diff2 diffsubfinal
+log
+
